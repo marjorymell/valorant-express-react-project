@@ -7,6 +7,7 @@ import Map from "./pages/Map";
 import Arsenal from "./pages/Arsenal";
 import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
+import Auth from "./pages/Auth";
 import { AppProviders } from "./contexts/AppProviders";
 
 const App = () => {
@@ -18,6 +19,7 @@ const App = () => {
         <Route path="/agent/:agentId" element={<Agent />} />
         <Route path="/arsenal" element={<Arsenal />} />
         <Route path="/map" element={<Map />} />
+        <Route path="/auth" element={<Auth />} />
       </Routes>
       <Footer />
     </AppProviders>

@@ -35,6 +35,9 @@ function Navbar() {
           <NavLink variant="h6" component={Link} to="/map">
             Maps
           </NavLink>
+          <NavLink variant="h6" component={Link} to="/auth">
+            Login
+          </NavLink>
         </Box>
 
         <Box
