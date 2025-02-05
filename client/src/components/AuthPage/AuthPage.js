@@ -16,6 +16,7 @@ const AuthPage = () => {
     password: '',
     confirmPassword: ''
   });
+  const [error, setError] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -23,12 +24,40 @@ const AuthPage = () => {
       ...prev,
       [name]: value
     }));
+    setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Implement authentication logic later
-    console.log('Form submitted:', formData);
+    
+    try {
+      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(isLogin ? {
+          email: formData.email,
+          password: formData.password
+        } : formData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Authentication failed');
+      }
+
+      // Store token
+      localStorage.setItem('token', data.token);
+      
+      // Redirect or update app state
+      window.location.href = '/';
+      
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   const toggleAuthMode = () => {
@@ -38,6 +67,7 @@ const AuthPage = () => {
       password: '',
       confirmPassword: ''
     });
+    setError('');
   };
 
   return (
@@ -47,6 +77,16 @@ const AuthPage = () => {
           {isLogin ? 'Login' : 'Register'}
         </StyledHeader>
         
+        {error && (
+          <div style={{ 
+            color: '#FF4655', 
+            marginBottom: '1rem', 
+            textAlign: 'center' 
+          }}>
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <StyledTextField
             fullWidth
@@ -80,7 +120,10 @@ const AuthPage = () => {
             />
           )}
           
-          <StyledButton type="submit">
+          <StyledButton 
+            type="submit"
+            disabled={!formData.email || !formData.password || (!isLogin && !formData.confirmPassword)}
+          >
             {isLogin ? 'Sign In' : 'Sign Up'}
           </StyledButton>
         </form>
