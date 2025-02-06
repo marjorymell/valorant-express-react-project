@@ -10,10 +10,10 @@ export const BackgroundProvider = ({ children }) => {
   const location = useLocation();
 
   useEffect(() => {
-    if (location.pathname === "/") {
-      setBackgroundImage("white");
+    if (location.pathname === "/login") {
+      setBackgroundImage("linear-gradient(to bottom, #0A192F, #172A45)");
     } else {
-      setBackgroundImage("linear-gradient(to bottom, #000000, #253f58)");
+      setBackgroundImage("white");
     }
   }, [location]);
 

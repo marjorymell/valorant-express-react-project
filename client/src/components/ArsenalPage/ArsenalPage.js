@@ -49,10 +49,11 @@ const ArsenalPage = () => {
                 />
               </StyledWeaponCard>
             ))
-          : weapons.map((weapon) => (
+          : weapons
+          .map((weapon) => (
               <StyledWeaponCard key={weapon.uuid}>
                 <StyledWeaponImage
-                  src={weapon.displayIcon || ""}
+                  src={weapon.displayIcon}
                   alt={weapon.displayName}
                 />
                 <StyledWeaponName>{weapon.displayName}</StyledWeaponName>

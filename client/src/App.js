@@ -8,6 +8,7 @@ import Arsenal from "./pages/Arsenal";
 import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
 import Auth from "./pages/Auth";
+import Mural from "./pages/Mural";
 import { AppProviders } from "./contexts/AppProviders";
 
 const App = () => {
@@ -20,6 +21,7 @@ const App = () => {
         <Route path="/arsenal" element={<Arsenal />} />
         <Route path="/map" element={<Map />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/mural" element={<Mural />} />
       </Routes>
       <Footer />
     </AppProviders>

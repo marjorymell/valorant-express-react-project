@@ -47,6 +47,21 @@ function Navbar() {
           <NavLink variant="h6" component={Link} to="/">Home</NavLink>
           <NavLink variant="h6" component={Link} to="/arsenal">Arsenal</NavLink>
           <NavLink variant="h6" component={Link} to="/map">Maps</NavLink>
+          <NavLink variant="h6" component={Link} to="/mural">Mural</NavLink>
+        </Box>
+
+        <Box
+          component="img"
+          src={logo}
+          alt="Logo"
+          sx={{
+            height: "40px",
+            position: "absolute",
+            left: "50%",
+            transform: "translateX(-50%)",
+          }}
+        />
+          <Box sx={{ display: "flex", gap: "1.5rem" }}>
           {isAuthenticated ? (
             <NavLink 
               variant="h6" 
@@ -65,18 +80,6 @@ function Navbar() {
             <NavLink variant="h6" component={Link} to="/auth">Login</NavLink>
           )}
         </Box>
-
-        <Box
-          component="img"
-          src={logo}
-          alt="Logo"
-          sx={{
-            height: "40px",
-            position: "absolute",
-            left: "50%",
-            transform: "translateX(-50%)",
-          }}
-        />
       </Toolbar>
     </AppBar>
   );

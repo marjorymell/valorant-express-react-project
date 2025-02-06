@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, TextField, InputAdornment, Typography } from "@mui/material";
+import { Box, TextField, InputAdornment, Typography, Button } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { useArsenalContext } from "../../contexts/ArsenalPage";
 import { fetchArsenal } from "../../services/Arsenal";
@@ -15,8 +15,9 @@ const WeaponSearch = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedWeapon, setSelectedWeapon] = useState(null);
   const [error, setError] = useState("");
-  const { weapons, updateWeapons, updateLoading, updateError } =
-    useArsenalContext();
+  const [searched, setSearched] = useState(false);
+
+  const { weapons, updateWeapons, updateLoading, updateError } = useArsenalContext();
 
   useEffect(() => {
     const loadWeapons = async () => {
@@ -36,33 +37,30 @@ const WeaponSearch = () => {
     loadWeapons();
   }, [weapons.length, updateWeapons, updateLoading, updateError]);
 
-  const handleSearch = (event) => {
-    const term = event.target.value.toLowerCase();
-    setSearchTerm(term);
+  const handleSearchClick = () => {
+    setSearched(true);
 
-    if (term.trim() === "") {
+    if (!searchTerm.trim()) {
       setError("Please enter a weapon name.");
       setSelectedWeapon(null);
       return;
     }
 
-    setError("");
-
     const foundWeapon = weapons.find((weapon) =>
-      weapon.displayName.toLowerCase().includes(term)
+      weapon.displayName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    setSelectedWeapon(foundWeapon || null);
+    if (!foundWeapon) {
+      setError(`No weapon found for "${searchTerm}"`);
+      setSelectedWeapon(null);
+    } else {
+      setError("");
+      setSelectedWeapon(foundWeapon);
+    }
   };
 
   const renderSkinCard = (skin) => (
-    <StyledWeaponCard
-      key={skin.uuid}
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <StyledWeaponCard key={skin.uuid}>
       <StyledWeaponImage
         src={
           skin.displayIcon ||
@@ -76,7 +74,7 @@ const WeaponSearch = () => {
           whiteSpace: "nowrap",
           overflow: "hidden",
           textOverflow: "ellipsis",
-          width: "100%",
+          maxWidth: "100%",
         }}
       >
         {skin.displayName}
@@ -90,53 +88,49 @@ const WeaponSearch = () => {
   );
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: "1rem",
-      }}
-    >
+    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "1rem" }}>
       <TextField
         variant="outlined"
         placeholder="Search by weapon name..."
         value={searchTerm}
-        onChange={handleSearch}
+        onChange={(e) => setSearchTerm(e.target.value)}
         autoComplete="off"
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <SearchIcon sx={{ color: "white" }} />
+              <SearchIcon sx={{ color: "black" }} />
             </InputAdornment>
           ),
         }}
         sx={{
           width: "300px",
-          marginBottom: "2rem",
-          backgroundColor: "rgba(0, 0, 0, 0.7)",
-          borderRadius: "8px",
           "& .MuiOutlinedInput-root": {
-            "& fieldset": {
-              borderColor: "rgba(255, 255, 255, 0.3)",
-            },
-            "&:hover fieldset": {
-              borderColor: "rgba(255, 255, 255, 0.5)",
-            },
-            "&.Mui-focused fieldset": {
-              borderColor: "white",
-            },
+            "& fieldset": { borderColor: "black" },
+            "&:hover fieldset": { borderColor: "black" },
+            "&.Mui-focused fieldset": { borderColor: "black" },
           },
-          "& .MuiInputBase-input": {
-            color: "white",
-            "::placeholder": {
-              color: "rgba(255, 255, 255, 0.5)",
-            },
-          },
+          "& .MuiInputBase-input": { color: "black" },
         }}
       />
 
-      {error && (
+      <Button
+        onClick={handleSearchClick}
+        sx={{
+          background: "linear-gradient(45deg, #FF4655 30%, #FF7F50 90%)",
+          border: 0,
+          borderRadius: 3,
+          boxShadow: "0 3px 5px 2px rgba(255, 105, 135, .3)",
+          color: "white",
+          height: 48,
+          padding: "0 30px",
+          marginTop: "1rem",
+          "&:hover": { background: "linear-gradient(45deg, #FF4655 50%, #FF7F50 100%)" },
+        }}
+      >
+        Search Weapon
+      </Button>
+
+      {searched && error && (
         <Typography
           variant="body1"
           sx={{
@@ -152,12 +146,10 @@ const WeaponSearch = () => {
           {error}
         </Typography>
       )}
-      {selectedWeapon ? (
+
+      {selectedWeapon && (
         <Box sx={{ width: "100%", overflow: "hidden", marginTop: 2 }}>
-          <Typography
-            variant="h5"
-            sx={{ textAlign: "center", margin: "20px 0", color: "white" }}
-          >
+          <Typography variant="h5" sx={{ textAlign: "center", margin: "20px 0", color: "black" }}>
             {selectedWeapon.displayName} Skins
           </Typography>
           <GenericCarousel
@@ -168,26 +160,9 @@ const WeaponSearch = () => {
             itemsToShow={3}
             gap={10}
             loading={false}
-            arrowColor="white"
+            arrowColor="black"
           />
         </Box>
-      ) : (
-        searchTerm && (
-          <Typography
-            variant="body1"
-            sx={{
-              color: "red",
-              textAlign: "center",
-              marginTop: 2,
-              padding: "0.5rem",
-              backgroundColor: "rgba(255, 0, 0, 0.1)",
-              borderRadius: "8px",
-              maxWidth: "300px",
-            }}
-          >
-            No weapon found for "{searchTerm}"
-          </Typography>
-        )
       )}
     </Box>
   );

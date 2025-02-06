@@ -30,7 +30,7 @@ export const AnimatedBackground = styled("div")({
   width: "100%",
   height: "100%",
   background:
-    "linear-gradient(45deg, #0e1822, #253f58, #112d40, #0f202d, #253f58)",
+    "linear-gradient(to bottom, #0A192F, #172A45)",
   backgroundSize: "600% 600%",
   animation: `${moveBackground} 18s ease-in-out infinite`,
 });

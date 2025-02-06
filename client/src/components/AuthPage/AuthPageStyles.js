@@ -92,7 +92,7 @@ export const StyledButton = ({ children, ...props }) => (
     sx={{
       width: "100%",
       padding: "0.8rem",
-      backgroundColor: "#FF4655",
+      background: 'linear-gradient(45deg, #FF4655 30%, #FF7F50 90%)',
       color: "white",
       border: "none",
       borderRadius: "4px",
@@ -102,10 +102,10 @@ export const StyledButton = ({ children, ...props }) => (
       cursor: "pointer",
       transition: "background-color 0.2s",
       "&:hover": {
-        backgroundColor: "#FF5864",
+        background: 'linear-gradient(45deg, #FF4655 30%, #FF7F50 90%)',
       },
       "&:disabled": {
-        backgroundColor: "rgba(255, 70, 85, 0.5)",
+        background: 'linear-gradient(45deg,rgb(175, 49, 59) 30%,rgb(155, 77, 49) 90%)',
         cursor: "not-allowed",
       },
     }}
