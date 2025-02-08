@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Container,
   Box,
@@ -9,7 +10,7 @@ import {
   DialogContentText,
   DialogTitle
 } from '@mui/material';
-import { fetchPlayerCards } from '../../services/PlayerCards'; 
+import { fetchPlayerCards } from '../../services/PlayerCards';
 import {
   StyledContainer,
   StyledHeader,
@@ -26,22 +27,42 @@ import {
   StyledInfoBox
 } from './MuralPageStyles';
 
+const getToken = () => localStorage.getItem('token');
+
+
 const MuralPage = () => {
+  const navigate = useNavigate();
   const [nicknames, setNicknames] = useState([]);
   const [newNickname, setNewNickname] = useState('');
   const [playerCards, setPlayerCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [nicknameToDelete, setNicknameToDelete] = useState(null);
+  const [error, setError] = useState('');
+  const [userHasNickname, setUserHasNickname] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const playerCardsData = await fetchPlayerCards();
+        const [playerCardsData, nicknamesData] = await Promise.all([
+          fetchPlayerCards(),
+          fetchNicknames()
+        ]);
+        
         setPlayerCards(playerCardsData);
+        setNicknames(nicknamesData);
+        
+        const token = getToken();
+        if (token) {
+          const userData = JSON.parse(atob(token.split('.')[1]));
+          setCurrentUserId(userData.id);
+          setUserHasNickname(nicknamesData.some(n => n.userId === userData.id));
+        }
+        
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching player cards:", error);
+        console.error("Error fetching data:", error);
+        setError("Failed to load data");
         setLoading(false);
       }
     };
@@ -49,30 +70,76 @@ const MuralPage = () => {
     fetchData();
   }, []);
 
-  const handleSubmit = (e) => {
+  const fetchNicknames = async () => {
+    const response = await fetch('/api/nicknames');
+    if (!response.ok) throw new Error('Failed to fetch nicknames');
+    return response.json();
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
     if (newNickname.trim()) {
-      const randomCard = playerCards[Math.floor(Math.random() * playerCards.length)];
+      try {
+        const randomCard = playerCards[Math.floor(Math.random() * playerCards.length)];
+        
+        const response = await fetch('/api/nicknames', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            nickname: newNickname.trim(),
+            playerCard: randomCard?.wideArt || ""
+          })
+        });
 
-      const newEntry = {
-        id: Date.now(),
-        nickname: newNickname.trim(),
-        playerCard: randomCard?.wideArt || ""
-      };
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message);
+        }
 
-      setNicknames([newEntry, ...nicknames]);
-      setNewNickname('');
+        const newEntry = await response.json();
+        setNicknames([newEntry.nickname, ...nicknames]);
+        setNewNickname('');
+        setUserHasNickname(true);
+      } catch (error) {
+        setError(error.message);
+      }
     }
   };
 
-  const handleDeleteClick = (nickname) => {
-    setNicknameToDelete(nickname);
-    setDeleteConfirmOpen(true);
-  };
+  const handleDeleteClick = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
 
-  const handleDeleteConfirm = () => {
-    setNicknames(nicknames.filter(n => n.id !== nicknameToDelete.id));
-    setDeleteConfirmOpen(false);
+    try {
+      const response = await fetch('/api/nicknames', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to delete nickname');
+
+      const updatedNicknames = await fetchNicknames();
+      setNicknames(updatedNicknames);
+      setUserHasNickname(false);
+      setDeleteConfirmOpen(false);
+    } catch (error) {
+      setError(error.message);
+    }
   };
 
   if (loading) {
@@ -93,53 +160,62 @@ const MuralPage = () => {
             Welcome to the Valorant Nickname Mural!
           </Typography>
           <Typography variant="body1">
-            Here, you can add your unique Valorant nickname to our community mural. Feel free to be creative and show off your agent-inspired alias! Remember, you can only add and delete your own nickname. Let's build an awesome collection of Valorant player identities together!
+            Here, you can add your unique Valorant nickname to our community mural. You can only add one nickname!
+            {!getToken() && " Please log in to add your nickname."}
+            {getToken() && userHasNickname && " You can only have one nickname at a time."}
           </Typography>
+          {error && (
+            <Typography color="error" sx={{ mt: 2 }}>
+              {error}
+            </Typography>
+          )}
         </StyledInfoBox>
 
-        <StyledForm onSubmit={handleSubmit}>
-          <StyledTextField
-            label="Your Nickname"
-            variant="outlined"
-            value={newNickname}
-            onChange={(e) => setNewNickname(e.target.value)}
-            fullWidth
-          />
-          <StyledButton type="submit">
-            Add to Mural
-          </StyledButton>
-        </StyledForm>
+        {getToken() && !userHasNickname && (
+          <StyledForm onSubmit={handleSubmit}>
+            <StyledTextField
+              label="Your Nickname"
+              variant="outlined"
+              value={newNickname}
+              onChange={(e) => setNewNickname(e.target.value)}
+              fullWidth
+            />
+            <StyledButton type="submit">
+              Add to Mural
+            </StyledButton>
+          </StyledForm>
+        )}
 
-        <StyledMuralGrid>
-          {nicknames.map((entry) => (
-            <StyledNicknameCard key={entry.id} elevation={3}>
-              <DeleteButton onClick={() => handleDeleteClick(entry)}>
-                X
-              </DeleteButton>
-              <StyledPlayerCardImage src={entry.playerCard} alt="Player Card" />
-              <StyledNickname>{entry.nickname}</StyledNickname>
-            </StyledNicknameCard>
-          ))}
-        </StyledMuralGrid>
+    <StyledMuralGrid>
+      {nicknames.map((entry) => (
+        <StyledNicknameCard key={entry._id} elevation={3}>
+          {getToken() && currentUserId && entry.userId === currentUserId && (
+            <DeleteButton onClick={() => setDeleteConfirmOpen(true)}>
+              X
+            </DeleteButton>
+          )}
+          <StyledPlayerCardImage src={entry.playerCard} alt="Player Card" />
+          <StyledNickname>{entry.nickname}</StyledNickname>
+        </StyledNicknameCard>
+      ))}
+    </StyledMuralGrid>
       </Container>
 
       <StyledDialog
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">{"Confirm Deletion"}</DialogTitle>
+        <DialogTitle>{"Confirm Deletion"}</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-description" sx={{ color: 'black', mt: 2 }}>
-            Are you sure you want to delete this nickname?
+          <DialogContentText sx={{ color: 'black', mt: 2 }}>
+            Are you sure you want to delete your nickname?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <DialogButton onClick={() => setDeleteConfirmOpen(false)}>
             Cancel
           </DialogButton>
-          <DialogButton onClick={handleDeleteConfirm} autoFocus>
+          <DialogButton onClick={handleDeleteClick} autoFocus>
             Confirm
           </DialogButton>
         </DialogActions>

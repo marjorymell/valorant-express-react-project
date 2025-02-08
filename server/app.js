@@ -5,6 +5,7 @@ const compression = require('compression');
 const connectDB = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/authRoutes');
+const nicknameRoutes = require('./routes/nicknameRoutes');
 const logger = require('./utils/logger');
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/nicknames', nicknameRoutes);
 
 
 app.use(errorHandler);
