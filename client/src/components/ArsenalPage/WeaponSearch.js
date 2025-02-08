@@ -16,8 +16,14 @@ const WeaponSearch = () => {
   const [selectedWeapon, setSelectedWeapon] = useState(null);
   const [error, setError] = useState("");
   const [searched, setSearched] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const { weapons, updateWeapons, updateLoading, updateError } = useArsenalContext();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsAuthenticated(!!token);
+  }, []);
 
   useEffect(() => {
     const loadWeapons = async () => {
@@ -34,7 +40,7 @@ const WeaponSearch = () => {
       }
     };
 
-    loadWeapons();
+    loadWeapons(); 
   }, [weapons.length, updateWeapons, updateLoading, updateError]);
 
   const handleSearchClick = () => {
@@ -148,21 +154,40 @@ const WeaponSearch = () => {
       )}
 
       {selectedWeapon && (
-        <Box sx={{ width: "100%", overflow: "hidden", marginTop: 2 }}>
-          <Typography variant="h5" sx={{ textAlign: "center", margin: "20px 0", color: "black" }}>
-            {selectedWeapon.displayName} Skins
-          </Typography>
-          <GenericCarousel
-            items={selectedWeapon.skins}
-            renderItem={renderSkinCard}
-            itemWidth={300}
-            itemHeight={200}
-            itemsToShow={3}
-            gap={10}
-            loading={false}
-            arrowColor="black"
-          />
-        </Box>
+        <>
+          {isAuthenticated ? (
+            <Box sx={{ width: "100%", overflow: "hidden", marginTop: 2 }}>
+              <Typography variant="h5" sx={{ textAlign: "center", margin: "20px 0", color: "black" }}>
+                {selectedWeapon.displayName} Skins
+              </Typography>
+              <GenericCarousel
+                items={selectedWeapon.skins}
+                renderItem={renderSkinCard}
+                itemWidth={300}
+                itemHeight={200}
+                itemsToShow={3}
+                gap={10}
+                loading={false}
+                arrowColor="black"
+              />
+            </Box>
+          ) : (
+            <Typography
+              variant="body1"
+              sx={{
+                color: "red",
+                textAlign: "center",
+                marginTop: 2,
+                padding: "0.5rem",
+                backgroundColor: "rgba(255, 0, 0, 0.1)",
+                borderRadius: "8px",
+                maxWidth: "300px",
+              }}
+            >
+              Please log in to view weapon skins
+            </Typography>
+          )}
+        </>
       )}
     </Box>
   );

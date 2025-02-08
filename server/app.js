@@ -21,7 +21,6 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/nicknames', nicknameRoutes);
 
-
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3500;
