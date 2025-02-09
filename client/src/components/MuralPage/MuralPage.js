@@ -32,7 +32,7 @@ const getToken = () => localStorage.getItem('token');
 
 const MuralPage = () => {
   const navigate = useNavigate();
-  const [nicknames, setNicknames] = useState([]);
+  const [nicknames, setNicknames] = useState([]);  
   const [newNickname, setNewNickname] = useState('');
   const [playerCards, setPlayerCards] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +50,7 @@ const MuralPage = () => {
         ]);
         
         setPlayerCards(playerCardsData);
-        setNicknames(nicknamesData);
+        setNicknames(Array.isArray(nicknamesData) ? nicknamesData : []);
         
         const token = getToken();
         if (token) {
@@ -66,9 +66,9 @@ const MuralPage = () => {
         setLoading(false);
       }
     };
-
+  
     fetchData();
-  }, []);
+  }, []);  
 
   const fetchNicknames = async () => {
     const response = await fetch('/api/nicknames');
@@ -150,6 +150,8 @@ const MuralPage = () => {
     );
   }
 
+  const safeNicknames = Array.isArray(nicknames) ? nicknames : [];
+
   return (
     <StyledContainer>
       <Container maxWidth="lg">
@@ -186,19 +188,19 @@ const MuralPage = () => {
           </StyledForm>
         )}
 
-    <StyledMuralGrid>
-      {nicknames.map((entry) => (
-        <StyledNicknameCard key={entry._id} elevation={3}>
-          {getToken() && currentUserId && entry.userId === currentUserId && (
-            <DeleteButton onClick={() => setDeleteConfirmOpen(true)}>
-              X
-            </DeleteButton>
-          )}
-          <StyledPlayerCardImage src={entry.playerCard} alt="Player Card" />
-          <StyledNickname>{entry.nickname}</StyledNickname>
-        </StyledNicknameCard>
-      ))}
-    </StyledMuralGrid>
+        <StyledMuralGrid>
+          {safeNicknames.map((entry) => (
+            <StyledNicknameCard key={entry._id} elevation={3}>
+              {getToken() && currentUserId && entry.userId === currentUserId && (
+                <DeleteButton onClick={() => setDeleteConfirmOpen(true)}>
+                  X
+                </DeleteButton>
+              )}
+              <StyledPlayerCardImage src={entry.playerCard} alt="Player Card" />
+              <StyledNickname>{entry.nickname}</StyledNickname>
+            </StyledNicknameCard>
+          ))}
+        </StyledMuralGrid>
       </Container>
 
       <StyledDialog

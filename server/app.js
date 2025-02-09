@@ -12,12 +12,10 @@ const app = express();
 app.set('trust proxy', 1);
 connectDB();
 
-// Middleware
 app.use(cors());
 app.use(compression());
 app.use(express.json());
 
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/nicknames', nicknameRoutes);
 

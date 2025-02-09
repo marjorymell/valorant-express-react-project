@@ -1,3 +1,4 @@
+const { redisCache } = require('../middleware/cacheMiddleware');  
 const Nickname = require('../models/Nickname');
 const { sanitizeInput } = require('../utils/sanitizer');
 const logger = require('../utils/logger');
@@ -8,9 +9,7 @@ exports.addNickname = async (req, res) => {
     
     const existingNickname = await Nickname.findOne({ userId: req.user.id });
     if (existingNickname) {
-      return res.status(400).json({
-        message: 'User already has a nickname'
-      });
+      return res.status(400).json({ message: 'User already has a nickname' });
     }
 
     const nickname = new Nickname({
@@ -20,17 +19,17 @@ exports.addNickname = async (req, res) => {
     });
 
     await nickname.save();
-    
-    logger.info(`Nickname added for user: ${req.user.id}`);
-    res.status(201).json({
-      message: 'Nickname added successfully',
-      nickname
+    redisCache.del('/api/nicknames', (err) => {
+      if (err) {
+        console.error('Error deleting cache:', err);
+      }
     });
+
+    logger.info(`Nickname added for user: ${req.user.id}`);
+    res.status(201).json({ message: 'Nickname added successfully', nickname });
   } catch (error) {
     logger.error(`Error adding nickname: ${error.message}`);
-    res.status(500).json({
-      message: 'Server error while adding nickname'
-    });
+    res.status(500).json({ message: 'Server error while adding nickname' });
   }
 };
 
@@ -38,8 +37,12 @@ exports.getNicknames = async (req, res) => {
   try {
     const nicknames = await Nickname.find()
       .sort({ createdAt: -1 })
-      .select('nickname playerCard userId createdAt'); 
+      .select('nickname playerCard userId createdAt');
     
+    if (!nicknames) {
+      return res.json([]); 
+    }
+
     res.json(nicknames);
   } catch (error) {
     logger.error(`Error fetching nicknames: ${error.message}`);
@@ -49,26 +52,26 @@ exports.getNicknames = async (req, res) => {
   }
 };
 
+
 exports.deleteNickname = async (req, res) => {
   try {
     const nickname = await Nickname.findOne({ userId: req.user.id });
     
     if (!nickname) {
-      return res.status(404).json({
-        message: 'Nickname not found'
-      });
+      return res.status(404).json({ message: 'Nickname not found' });
     }
 
     await nickname.deleteOne();
-    logger.info(`Nickname deleted for user: ${req.user.id}`);
-    
-    res.json({
-      message: 'Nickname deleted successfully'
+    redisCache.del('/api/nicknames', (err) => {
+      if (err) {
+        console.error('Error deleting cache:', err);
+      }
     });
+
+    logger.info(`Nickname deleted for user: ${req.user.id}`);
+    res.json({ message: 'Nickname deleted successfully' });
   } catch (error) {
     logger.error(`Error deleting nickname: ${error.message}`);
-    res.status(500).json({
-      message: 'Server error while deleting nickname'
-    });
+    res.status(500).json({ message: 'Server error while deleting nickname' });
   }
 };
