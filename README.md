@@ -67,7 +67,7 @@ DELETE /api/nicknames    - Delete nickname
 npm install
 ```
 
-2. Environment variables:
+2. Environment variables (/server):
 
 ```env
 PORT=3500
