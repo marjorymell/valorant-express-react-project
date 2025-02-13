@@ -21,7 +21,10 @@ A full-stack application built with React and Express.js that provides Valorant 
 
 ### Frontend
 
-- Agent, weapon, and map information display
+- You can add your nickname only when logged in and can only delete the nickname you added to the wall; other players' nicknames cannot be removed.
+- Weapon skins can only be searched when logged in.
+- You can register on the website and log in.
+- You can view the game's arsenal, maps, and agents.
 - Dynamic search functionality
 - Responsive Material-UI components
 - Global state management with Context API
